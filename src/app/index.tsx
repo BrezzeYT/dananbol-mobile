@@ -62,6 +62,7 @@ export default function HomeScreen() {
   const [selectedSubcategory, setSelectedSubcategory] = useState('all');
   const [isExpanded, setIsExpanded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const catalogListRef = useRef<FlatList<Product>>(null);
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showTopupModal, setShowTopupModal] = useState(false);
@@ -209,6 +210,7 @@ export default function HomeScreen() {
   };
 
   const {
+    catalogViewKey,
     currentPage,
     products,
     totalProducts,
@@ -226,6 +228,14 @@ export default function HomeScreen() {
     inStockOnly,
     promoOnly,
   });
+
+  const handleCatalogPageChange = useCallback((page: number) => {
+    if (page === currentPage) return;
+    if (activeTab === 'home' && !isCheckingOut) {
+      catalogListRef.current?.scrollToOffset({ offset: 0, animated: true });
+    }
+    handlePageChange(page);
+  }, [activeTab, currentPage, handlePageChange, isCheckingOut]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -339,6 +349,7 @@ export default function HomeScreen() {
       default:
         return (
           <FlatList
+            ref={catalogListRef}
             data={products}
             keyExtractor={(item) => String(item.id)}
             numColumns={2}
@@ -442,15 +453,22 @@ export default function HomeScreen() {
 
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionTitle}>{categoryTitle || 'Каталог товаров'}</Text>
-                  <View style={styles.countBadge}>
-                    <Text style={styles.countBadgeText}>{totalProducts} товаров</Text>
+                  <View style={styles.countBadgeRow}>
+                    {isProductsLoading && products.length > 0 ? (
+                      <ActivityIndicator size="small" color="#f59e0b" />
+                    ) : null}
+                    <View style={styles.countBadge}>
+                      <Text style={styles.countBadgeText}>{totalProducts} товаров</Text>
+                    </View>
                   </View>
                 </View>
               </View>
             }
-            renderItem={({ item }) => (
+            renderItem={({ item, index }) => (
               <ProductCard
                 product={item}
+                appearanceKey={catalogViewKey}
+                appearanceIndex={index}
                 onAddToCart={handleCardAddToCart}
                 onPress={handleCardPress}
               />
@@ -471,11 +489,11 @@ export default function HomeScreen() {
               )
             }
             ListFooterComponent={
-              !isProductsLoading && products.length > 0 ? (
+              products.length > 0 ? (
                 <CatalogPagination
                   currentPage={currentPage}
                   totalPages={totalPages}
-                  onPageChange={handlePageChange}
+                  onPageChange={handleCatalogPageChange}
                 />
               ) : undefined
             }

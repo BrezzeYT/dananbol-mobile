@@ -7,6 +7,7 @@ export const addressesStyles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   content: {
+    flexGrow: 1,
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 110,
@@ -35,26 +36,53 @@ export const addressesStyles = StyleSheet.create({
     fontSize: 14,
     color: '#5a7085',
   },
-  addBtn: {
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 12,
-    backgroundColor: '#8ec0ed',
+  toolbar: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 10,
+    marginBottom: 14,
+  },
+  searchBox: {
+    flex: 1,
+    height: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 14,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 15,
+  },
+  searchInput: {
+    flex: 1,
+    minWidth: 0,
+    height: '100%',
+    padding: 0,
+    fontFamily: 'Montserrat_500Medium',
+    fontSize: 14,
+    color: '#1e293b',
+  },
+  addIconBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 15,
+    backgroundColor: '#8ec0ed',
+    alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    marginBottom: 16,
     shadowColor: '#8ec0ed',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 12,
     elevation: 2,
   },
-  addBtnText: {
-    fontFamily: 'Montserrat_600SemiBold',
-    fontSize: 13,
-    color: '#ffffff',
+  listArea: {
+    flex: 1,
+    minHeight: 0,
+  },
+  addressScroll: {
+    flex: 1,
+    minHeight: 0,
   },
   errorBox: {
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
@@ -70,6 +98,8 @@ export const addressesStyles = StyleSheet.create({
     textAlign: 'center',
   },
   loadingBox: {
+    flex: 1,
+    minHeight: 100,
     paddingVertical: 40,
     alignItems: 'center',
     justifyContent: 'center',
@@ -81,6 +111,8 @@ export const addressesStyles = StyleSheet.create({
     color: '#8ec0ed',
   },
   emptyBox: {
+    flex: 1,
+    minHeight: 120,
     paddingVertical: 40,
     paddingHorizontal: 20,
     alignItems: 'center',
@@ -101,6 +133,11 @@ export const addressesStyles = StyleSheet.create({
   },
   list: {
     gap: 12,
+    paddingBottom: 8,
+  },
+  addressPagination: {
+    marginTop: 12,
+    marginBottom: 0,
   },
   addressCard: {
     backgroundColor: '#ffffff',

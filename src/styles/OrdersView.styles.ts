@@ -7,6 +7,7 @@ export const ordersStyles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   content: {
+    flexGrow: 1,
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 110,
@@ -34,6 +35,43 @@ export const ordersStyles = StyleSheet.create({
     fontFamily: 'Montserrat_500Medium',
     fontSize: 14,
     color: '#5a7085',
+  },
+  searchBox: {
+    height: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 14,
+    marginBottom: 14,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 15,
+  },
+  searchInput: {
+    flex: 1,
+    minWidth: 0,
+    height: '100%',
+    padding: 0,
+    fontFamily: 'Montserrat_500Medium',
+    fontSize: 14,
+    color: '#1e293b',
+  },
+  listArea: {
+    flex: 1,
+    minHeight: 0,
+  },
+  listScroll: {
+    flex: 1,
+    minHeight: 0,
+  },
+  pagination: {
+    marginTop: 12,
+    marginBottom: 0,
+  },
+  listState: {
+    flex: 1,
+    minHeight: 100,
   },
   errorBox: {
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
@@ -67,15 +105,10 @@ export const ordersStyles = StyleSheet.create({
     color: '#94a3b8',
     textAlign: 'center',
   },
-  list: {
-    flexDirection: 'column',
-  },
   ordersContainer: {
     flexDirection: 'column',
     gap: 12,
-  },
-  ordersContainerPaged: {
-    minHeight: 460,
+    paddingBottom: 8,
   },
   orderCard: {
     flexDirection: 'row',

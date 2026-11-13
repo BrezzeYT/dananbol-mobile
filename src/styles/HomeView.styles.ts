@@ -146,6 +146,11 @@ export const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 20,
   },
+  countBadgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   countBadgeText: {
     fontFamily: "Montserrat_600SemiBold",
     fontSize: 12,

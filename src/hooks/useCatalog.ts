@@ -72,10 +72,16 @@ export function useCatalog({
   });
 
   const isStale = fetchState === null || fetchState.requestKey !== requestKey;
+  const hasPreviousPageForFilter = Boolean(
+    fetchState &&
+      fetchState.error === null &&
+      fetchState.requestKey.startsWith(`${filterKey}|`)
+  );
+  const visibleFetchState = !isStale || hasPreviousPageForFilter ? fetchState : null;
   const isProductsLoading = isStale;
-  const products = isStale ? [] : fetchState.products;
-  const totalProducts = isStale ? 0 : fetchState.totalProducts;
-  const totalPages = isStale ? 0 : fetchState.totalPages;
+  const products = visibleFetchState?.products ?? [];
+  const totalProducts = visibleFetchState?.totalProducts ?? 0;
+  const totalPages = visibleFetchState?.totalPages ?? 0;
   const productsError = isStale ? null : fetchState.error;
 
   useEffect(() => {
@@ -156,7 +162,7 @@ export function useCatalog({
   };
 
   return {
-    catalogViewKey: requestKey,
+    catalogViewKey: visibleFetchState?.requestKey ?? requestKey,
     currentPage,
     products,
     totalProducts,

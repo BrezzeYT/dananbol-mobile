@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
 import { ChevronLeftIcon, ChevronRightIcon } from './icons';
 import { getVisiblePaginationPages } from '../lib/pagination';
 
@@ -7,19 +8,21 @@ interface CatalogPaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  wrapperStyle?: StyleProp<ViewStyle>;
 }
 
 export const CatalogPagination: React.FC<CatalogPaginationProps> = ({
   currentPage,
   totalPages,
   onPageChange,
+  wrapperStyle,
 }) => {
   if (totalPages <= 1) return null;
 
   const pages = getVisiblePaginationPages(currentPage, totalPages);
 
   return (
-    <View style={styles.paginationWrapper}>
+    <View style={[styles.paginationWrapper, wrapperStyle]}>
       <View style={styles.pagination}>
         <TouchableOpacity
           style={[

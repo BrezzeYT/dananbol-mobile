@@ -7,6 +7,7 @@ export const transactionsStyles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   content: {
+    flexGrow: 1,
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 110,
@@ -35,15 +36,43 @@ export const transactionsStyles = StyleSheet.create({
     fontSize: 14,
     color: '#5a7085',
   },
-  list: {
-    flexDirection: 'column',
+  searchBox: {
+    height: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 14,
+    marginBottom: 14,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 15,
+  },
+  searchInput: {
+    flex: 1,
+    minWidth: 0,
+    height: '100%',
+    padding: 0,
+    fontFamily: 'Montserrat_500Medium',
+    fontSize: 14,
+    color: '#1e293b',
+  },
+  listArea: {
+    flex: 1,
+    minHeight: 0,
+  },
+  listScroll: {
+    flex: 1,
+    minHeight: 0,
+  },
+  pagination: {
+    marginTop: 12,
+    marginBottom: 0,
   },
   cardsContainer: {
     flexDirection: 'column',
     gap: 12,
-  },
-  cardsContainerPaged: {
-    minHeight: 460,
+    paddingBottom: 8,
   },
   item: {
     flexDirection: 'row',
@@ -114,6 +143,8 @@ export const transactionsStyles = StyleSheet.create({
     color: '#e05252',
   },
   loadingBox: {
+    flex: 1,
+    minHeight: 100,
     paddingVertical: 40,
     alignItems: 'center',
     justifyContent: 'center',
@@ -125,6 +156,8 @@ export const transactionsStyles = StyleSheet.create({
     color: '#8ec0ed',
   },
   emptyBox: {
+    flex: 1,
+    minHeight: 120,
     paddingVertical: 40,
     paddingHorizontal: 20,
     alignItems: 'center',

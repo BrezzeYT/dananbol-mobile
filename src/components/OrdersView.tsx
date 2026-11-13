@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
   Linking,
-  Animated,
 } from 'react-native';
 import { Image } from 'expo-image';
 import {
@@ -17,6 +17,7 @@ import {
   PackageIcon,
   TruckIcon,
   XCircleIcon,
+  SearchIcon,
 } from './icons';
 import { CatalogPagination } from './CatalogPagination';
 import {
@@ -25,6 +26,7 @@ import {
   payMobileOrder,
 } from '../api/orders';
 import { useAuthContext } from '../context/useAuthContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ordersStyles as s } from '../styles/OrdersView.styles';
 import type { Order, OrderDetails } from '../types/orders';
 
@@ -91,6 +93,7 @@ interface OrdersViewProps {
 }
 
 let cachedOrders: Order[] = [];
+const ORDERS_PER_PAGE = 5;
 
 export const OrdersView: React.FC<OrdersViewProps> = ({
   onBack,
@@ -98,11 +101,13 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
   onOpenSupport,
 }) => {
   const { token, customer, refreshSession } = useAuthContext();
+  const insets = useSafeAreaInsets();
 
   const [orders, setOrders] = useState<Order[]>(cachedOrders);
   const [isLoading, setIsLoading] = useState<boolean>(cachedOrders.length === 0);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [orderQuery, setOrderQuery] = useState('');
 
   const handlePageChange = (newPage: number) => {
     if (newPage === currentPage) return;
@@ -213,11 +218,24 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
     Linking.openURL(link).catch(() => { });
   };
 
+  const normalizedOrderQuery = orderQuery.trim().toLocaleLowerCase('ru-RU');
+  const filteredOrders = orders.filter((order) =>
+    [order.order_id, order.status, order.total, order.date_added].some((value) =>
+      String(value ?? '').toLocaleLowerCase('ru-RU').includes(normalizedOrderQuery)
+    )
+  );
+  const totalPages = Math.ceil(filteredOrders.length / ORDERS_PER_PAGE);
+  const visibleOrders = filteredOrders.slice(
+    (currentPage - 1) * ORDERS_PER_PAGE,
+    currentPage * ORDERS_PER_PAGE
+  );
+  const bottomContentPadding = Math.max(insets.bottom, 10) + 68;
+
   if (selectedOrderId) {
     return (
       <ScrollView
         style={s.container}
-        contentContainerStyle={s.content}
+        contentContainerStyle={[s.content, { paddingBottom: bottomContentPadding }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={s.subHeader}>
@@ -500,120 +518,130 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
     );
   }
 
-  const ITEMS_PER_PAGE = 5;
-  const totalPages = Math.ceil(orders.length / ITEMS_PER_PAGE);
-  const visibleOrders = orders.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
-
   return (
-    <ScrollView
-      style={s.container}
-      contentContainerStyle={s.content}
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={s.subHeader}>
-        <Text style={s.sectionTitle}>Ваши заказы</Text>
-        {onBack && (
-          <TouchableOpacity
-            style={s.backBtn}
-            onPress={onBack}
-            activeOpacity={0.7}
-          >
-            <ArrowLeftIcon size={18} color="#5a7085" strokeWidth={2} />
-            <Text style={s.backBtnText}>Назад</Text>
-          </TouchableOpacity>
+    <View style={s.container}>
+      <View style={[s.content, { paddingBottom: bottomContentPadding }]}>
+        <View style={s.subHeader}>
+          <Text style={s.sectionTitle}>Ваши заказы</Text>
+          {onBack && (
+            <TouchableOpacity
+              style={s.backBtn}
+              onPress={onBack}
+              activeOpacity={0.7}
+            >
+              <ArrowLeftIcon size={18} color="#5a7085" strokeWidth={2} />
+              <Text style={s.backBtnText}>Назад</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <View style={s.searchBox}>
+          <SearchIcon size={18} color="#94a3b8" strokeWidth={2} />
+          <TextInput
+            style={s.searchInput}
+            value={orderQuery}
+            onChangeText={(value) => {
+              setOrderQuery(value);
+              setCurrentPage(1);
+            }}
+            placeholder="Поиск по заказам"
+            placeholderTextColor="#94a3b8"
+            accessibilityLabel="Поиск по номеру, статусу, сумме или дате заказа"
+            returnKeyType="search"
+            autoCorrect={false}
+          />
+        </View>
+
+        {error && (
+          <View style={s.errorBox}>
+            <Text style={s.errorText}>{error}</Text>
+          </View>
         )}
-      </View>
 
-      {error && (
-        <View style={s.errorBox}>
-          <Text style={s.errorText}>{error}</Text>
-        </View>
-      )}
-
-      {isLoading ? (
-        <View style={s.centerBox}>
-          <ActivityIndicator size="large" color="#8ec0ed" />
-          <Text style={s.loadingText}>Загрузка заказов...</Text>
-        </View>
-      ) : orders.length === 0 && !error ? (
-        <View style={s.centerBox}>
-          <Text style={s.emptyText}>Вы еще не совершали покупок</Text>
-        </View>
-      ) : (
-        <View style={s.list}>
-          <View
-            style={[
-              s.ordersContainer,
-              totalPages > 1 && s.ordersContainerPaged,
-            ]}
-          >
-            {visibleOrders.map((order) => {
-              const statusClass = getStatusClass(order.status);
-              return (
-                <TouchableOpacity
-                  key={`order_${currentPage}_${order.order_id}`}
-                  style={s.orderCard}
-                  onPress={() => setSelectedOrderId(order.order_id)}
-                  activeOpacity={0.7}
-                >
-                  <View style={s.orderCardLeft}>
-                    <View
-                      style={[
-                        s.orderIconBox,
-                        statusClass === 'complete' && s.iconBgComplete,
-                        statusClass === 'pending' && s.iconBgPending,
-                        statusClass === 'processing' && s.iconBgProcessing,
-                        statusClass === 'shipped' && s.iconBgShipped,
-                        statusClass === 'canceled' && s.iconBgCanceled,
-                        statusClass === 'default' && s.iconBgDefault,
-                      ]}
-                    >
-                      <StatusIcon statusClass={statusClass} size={22} />
-                    </View>
-                    <View style={s.orderCardText}>
-                      <Text style={s.orderCardTitle}>
-                        Заказ #{order.order_id}
-                      </Text>
-                      <Text
+        {isLoading ? (
+          <View style={[s.centerBox, s.listState]}>
+            <ActivityIndicator size="large" color="#8ec0ed" />
+            <Text style={s.loadingText}>Загрузка заказов...</Text>
+          </View>
+        ) : orders.length === 0 && !error ? (
+          <View style={[s.centerBox, s.listState]}>
+            <Text style={s.emptyText}>Вы еще не совершали покупок</Text>
+          </View>
+        ) : filteredOrders.length === 0 && orders.length > 0 ? (
+          <View style={[s.centerBox, s.listState]}>
+            <Text style={s.emptyText}>Заказы не найдены</Text>
+          </View>
+        ) : (
+          <View style={s.listArea}>
+            <ScrollView
+              style={s.listScroll}
+              contentContainerStyle={s.ordersContainer}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              {visibleOrders.map((order) => {
+                const statusClass = getStatusClass(order.status);
+                return (
+                  <TouchableOpacity
+                    key={`order_${order.order_id}`}
+                    style={s.orderCard}
+                    onPress={() => setSelectedOrderId(order.order_id)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={s.orderCardLeft}>
+                      <View
                         style={[
-                          s.statusText,
-                          statusClass === 'complete' && s.statusComplete,
-                          statusClass === 'pending' && s.statusPending,
-                          statusClass === 'processing' && s.statusProcessing,
-                          statusClass === 'shipped' && s.statusShipped,
-                          statusClass === 'canceled' && s.statusCanceled,
-                          statusClass === 'default' && s.statusDefault,
+                          s.orderIconBox,
+                          statusClass === 'complete' && s.iconBgComplete,
+                          statusClass === 'pending' && s.iconBgPending,
+                          statusClass === 'processing' && s.iconBgProcessing,
+                          statusClass === 'shipped' && s.iconBgShipped,
+                          statusClass === 'canceled' && s.iconBgCanceled,
+                          statusClass === 'default' && s.iconBgDefault,
                         ]}
                       >
-                        {order.status}
-                      </Text>
+                        <StatusIcon statusClass={statusClass} size={22} />
+                      </View>
+                      <View style={s.orderCardText}>
+                        <Text style={s.orderCardTitle}>
+                          Заказ #{order.order_id}
+                        </Text>
+                        <Text
+                          style={[
+                            s.statusText,
+                            statusClass === 'complete' && s.statusComplete,
+                            statusClass === 'pending' && s.statusPending,
+                            statusClass === 'processing' && s.statusProcessing,
+                            statusClass === 'shipped' && s.statusShipped,
+                            statusClass === 'canceled' && s.statusCanceled,
+                            statusClass === 'default' && s.statusDefault,
+                          ]}
+                        >
+                          {order.status}
+                        </Text>
+                      </View>
                     </View>
-                  </View>
-                  <View style={s.orderCardRight}>
-                    <View style={s.orderCardRightContent}>
-                      <Text style={s.orderCardTotal}>{order.total}</Text>
-                      <Text style={s.orderCardDate}>{order.date_added}</Text>
+                    <View style={s.orderCardRight}>
+                      <View style={s.orderCardRightContent}>
+                        <Text style={s.orderCardTotal}>{order.total}</Text>
+                        <Text style={s.orderCardDate}>{order.date_added}</Text>
+                      </View>
+                      <ChevronRightIcon size={18} color="#94a3b8" />
                     </View>
-                    <ChevronRightIcon size={18} color="#94a3b8" />
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          {totalPages > 1 && (
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
             <CatalogPagination
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={handlePageChange}
+              wrapperStyle={s.pagination}
             />
-          )}
-        </View>
-      )}
-    </ScrollView>
+          </View>
+        )}
+      </View>
+    </View>
   );
 };
 

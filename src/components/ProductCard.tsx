@@ -1,5 +1,5 @@
-import React, { memo, useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { memo, useEffect, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, ActivityIndicator, Animated, Easing } from 'react-native';
 import { Image } from 'expo-image';
 import { CartIcon, CheckIcon } from './icons';
 import { hapticMedium } from '../services/haptics';
@@ -8,6 +8,8 @@ import type { Product } from '../types';
 
 interface ProductCardProps {
   product: Product;
+  appearanceKey: string;
+  appearanceIndex: number;
   onAddToCart?: (product: Product) => void;
   onPress?: (product: Product) => void;
 }
@@ -16,9 +18,28 @@ function formatPrice(value: number): string {
   return `${value.toLocaleString('ru-RU')} ₽`;
 }
 
-export const ProductCard = memo(({ product, onAddToCart, onPress }: ProductCardProps) => {
+export const ProductCard = memo(({ product, appearanceKey, appearanceIndex, onAddToCart, onPress }: ProductCardProps) => {
+  const entranceProgress = useRef(new Animated.Value(0)).current;
   const [isAdded, setIsAdded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+
+  useEffect(() => {
+    entranceProgress.setValue(0);
+    const animation = Animated.timing(entranceProgress, {
+      toValue: 1,
+      duration: 320,
+      delay: Math.min(appearanceIndex, 9) * 30,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [appearanceIndex, appearanceKey, entranceProgress]);
+
+  const entranceY = entranceProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [12, 0],
+  });
 
   const inStock = (product.quantity ?? 1) > 0;
   const isPromo = Boolean(product.isPromo && product.priceRegular);
@@ -37,7 +58,15 @@ export const ProductCard = memo(({ product, onAddToCart, onPress }: ProductCardP
   };
 
   return (
-    <View style={styles.card}>
+    <Animated.View
+      style={[
+        styles.card,
+        {
+          opacity: entranceProgress,
+          transform: [{ translateY: entranceY }],
+        },
+      ]}
+    >
       <TouchableOpacity
         style={styles.cardInner}
         activeOpacity={0.92}
@@ -110,7 +139,7 @@ export const ProductCard = memo(({ product, onAddToCart, onPress }: ProductCardP
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
-    </View>
+    </Animated.View>
   );
 });
 

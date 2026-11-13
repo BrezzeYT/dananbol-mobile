@@ -8,9 +8,11 @@ import {
   ActivityIndicator,
   Modal,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ArrowLeftIcon,
   PlusIcon,
+  SearchIcon,
   TrashIcon,
 } from './icons';
 import { CatalogPagination } from './CatalogPagination';
@@ -31,12 +33,14 @@ interface AddressesViewProps {
 
 export const AddressesView: React.FC<AddressesViewProps> = ({ onBack, initialShowAddForm = false }) => {
   const { token } = useAuthContext();
+  const insets = useSafeAreaInsets();
 
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [addressQuery, setAddressQuery] = useState('');
 
   const [showAddForm, setShowAddForm] = useState(initialShowAddForm);
   const [isCreating, setIsCreating] = useState(false);
@@ -173,6 +177,8 @@ export const AddressesView: React.FC<AddressesViewProps> = ({ onBack, initialSho
 
       if (res.ok && res.address) {
         setAddresses((prev) => [res.address!, ...prev]);
+        setCurrentPage(1);
+        setAddressQuery('');
         resetForm();
         setShowAddForm(false);
       } else {
@@ -200,6 +206,7 @@ export const AddressesView: React.FC<AddressesViewProps> = ({ onBack, initialSho
       const res = await deleteMobileAddress(token, addressToDelete.id);
       if (res.ok) {
         setAddresses((prev) => prev.filter((a) => a.id !== addressToDelete.id));
+        setCurrentPage(1);
         setAddressToDelete(null);
       } else {
         setDeleteError(res.error || 'Не удалось удалить адрес');
@@ -225,12 +232,24 @@ export const AddressesView: React.FC<AddressesViewProps> = ({ onBack, initialSho
     setCreateError(null);
   };
 
+  const normalizedAddressQuery = addressQuery.trim().toLocaleLowerCase('ru-RU');
+  const filteredAddresses = addresses.filter((address) =>
+    String(address.address ?? '').toLocaleLowerCase('ru-RU').includes(normalizedAddressQuery)
+  );
+  const ITEMS_PER_PAGE = 5;
+  const totalPages = Math.ceil(filteredAddresses.length / ITEMS_PER_PAGE);
+  const visibleAddresses = filteredAddresses.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+  const bottomContentPadding = Math.max(insets.bottom, 10) + 68;
+
 
   if (showAddForm) {
     return (
       <ScrollView
         style={s.container}
-        contentContainerStyle={s.content}
+        contentContainerStyle={[s.content, { paddingBottom: bottomContentPadding }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={s.subHeader}>
@@ -417,78 +436,98 @@ export const AddressesView: React.FC<AddressesViewProps> = ({ onBack, initialSho
   }
 
 
-  const ITEMS_PER_PAGE = 5;
-  const totalPages = Math.ceil(addresses.length / ITEMS_PER_PAGE);
-  const visibleAddresses = addresses.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
-
   return (
-    <ScrollView
-      style={s.container}
-      contentContainerStyle={s.content}
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={s.subHeader}>
-        <Text style={s.sectionTitle}>Мои адреса</Text>
-        <TouchableOpacity style={s.backBtn} onPress={onBack} activeOpacity={0.7}>
-          <ArrowLeftIcon size={18} color="#5a7085" strokeWidth={2} />
-          <Text style={s.backBtnText}>Назад</Text>
-        </TouchableOpacity>
-      </View>
-
-
-      <TouchableOpacity
-        style={s.addBtn}
-        onPress={() => setShowAddForm(true)}
-        activeOpacity={0.8}
-      >
-        <PlusIcon size={16} color="#ffffff" strokeWidth={2.5} />
-        <Text style={s.addBtnText}>Добавить адрес</Text>
-      </TouchableOpacity>
-
-      {error && (
-        <View style={s.errorBox}>
-          <Text style={s.errorText}>{error}</Text>
+    <View style={s.container}>
+      <View style={[s.content, { paddingBottom: bottomContentPadding }]}>
+        <View style={s.subHeader}>
+          <Text style={s.sectionTitle}>Мои адреса</Text>
+          <TouchableOpacity style={s.backBtn} onPress={onBack} activeOpacity={0.7}>
+            <ArrowLeftIcon size={18} color="#5a7085" strokeWidth={2} />
+            <Text style={s.backBtnText}>Назад</Text>
+          </TouchableOpacity>
         </View>
-      )}
 
-      {isLoading ? (
-        <View style={s.loadingBox}>
-          <ActivityIndicator size="large" color="#8ec0ed" />
-          <Text style={s.loadingText}>Загрузка адресов...</Text>
+        <View style={s.toolbar}>
+          <View style={s.searchBox}>
+            <SearchIcon size={18} color="#94a3b8" strokeWidth={2} />
+            <TextInput
+              style={s.searchInput}
+              value={addressQuery}
+              onChangeText={(value) => {
+                setAddressQuery(value);
+                setCurrentPage(1);
+              }}
+              placeholder="Найти адрес"
+              placeholderTextColor="#94a3b8"
+              accessibilityLabel="Поиск по сохранённым адресам"
+              returnKeyType="search"
+              autoCorrect={false}
+            />
+          </View>
+          <TouchableOpacity
+            style={s.addIconBtn}
+            onPress={() => setShowAddForm(true)}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Добавить адрес"
+          >
+            <PlusIcon size={21} color="#ffffff" strokeWidth={2.5} />
+          </TouchableOpacity>
         </View>
-      ) : addresses.length === 0 && !error ? (
-        <View style={s.emptyBox}>
-          <Text style={s.emptyText}>У вас пока нет сохраненных адресов</Text>
-        </View>
-      ) : (
-        <View style={s.list}>
-          {visibleAddresses.map((addr) => (
-            <View key={`addr_${addr.id}`} style={s.addressCard}>
-              <View style={s.addressBody}>
-                <Text style={s.addressText}>{addr.address}</Text>
-              </View>
-              <TouchableOpacity
-                style={s.deleteBtn}
-                onPress={() => handleDeleteAddress(addr)}
-                activeOpacity={0.7}
-              >
-                <TrashIcon size={17} color="#ef4444" strokeWidth={1.8} />
-              </TouchableOpacity>
-            </View>
-          ))}
 
-          {totalPages > 1 && (
+        {error && (
+          <View style={s.errorBox}>
+            <Text style={s.errorText}>{error}</Text>
+          </View>
+        )}
+
+        {isLoading ? (
+          <View style={s.loadingBox}>
+            <ActivityIndicator size="large" color="#8ec0ed" />
+            <Text style={s.loadingText}>Загрузка адресов...</Text>
+          </View>
+        ) : addresses.length === 0 && !error ? (
+          <View style={s.emptyBox}>
+            <Text style={s.emptyText}>У вас пока нет сохраненных адресов</Text>
+          </View>
+        ) : filteredAddresses.length === 0 && !error ? (
+          <View style={s.emptyBox}>
+            <Text style={s.emptyText}>По этому запросу адреса не найдены</Text>
+          </View>
+        ) : (
+          <View style={s.listArea}>
+            <ScrollView
+              style={s.addressScroll}
+              contentContainerStyle={s.list}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              {visibleAddresses.map((addr) => (
+                <View key={`addr_${addr.id}`} style={s.addressCard}>
+                  <View style={s.addressBody}>
+                    <Text style={s.addressText}>{addr.address}</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={s.deleteBtn}
+                    onPress={() => handleDeleteAddress(addr)}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel="Удалить адрес"
+                  >
+                    <TrashIcon size={17} color="#ef4444" strokeWidth={1.8} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
             <CatalogPagination
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={setCurrentPage}
+              wrapperStyle={s.addressPagination}
             />
-          )}
-        </View>
-      )}
+          </View>
+        )}
+      </View>
 
       <Modal
         visible={!!addressToDelete}
@@ -556,7 +595,7 @@ export const AddressesView: React.FC<AddressesViewProps> = ({ onBack, initialSho
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
-    </ScrollView>
+    </View>
   );
 };
 

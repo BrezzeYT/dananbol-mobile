@@ -1,0 +1,508 @@
+import { StyleSheet } from 'react-native';
+
+export const ordersStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: '#ffffff',
+  },
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 110,
+  },
+  subHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontFamily: 'Montserrat_600SemiBold',
+    fontSize: 20,
+    color: '#000000',
+    letterSpacing: -0.5,
+  },
+  backBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    padding: 0,
+    backgroundColor: 'transparent',
+  },
+  backBtnText: {
+    fontFamily: 'Montserrat_500Medium',
+    fontSize: 14,
+    color: '#5a7085',
+  },
+  errorBox: {
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  errorText: {
+    fontFamily: 'Montserrat_500Medium',
+    fontSize: 13,
+    color: '#ef4444',
+    textAlign: 'center',
+  },
+  centerBox: {
+    paddingVertical: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontFamily: 'Montserrat_500Medium',
+    fontSize: 14,
+    color: '#8ec0ed',
+  },
+  emptyText: {
+    fontFamily: 'Montserrat_500Medium',
+    fontSize: 14,
+    color: '#94a3b8',
+    textAlign: 'center',
+  },
+  list: {
+    flexDirection: 'column',
+  },
+  ordersContainer: {
+    flexDirection: 'column',
+    gap: 12,
+  },
+  ordersContainerPaged: {
+    minHeight: 460,
+  },
+  orderCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    minHeight: 80,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 16,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
+  orderCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  orderIconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  orderCardText: {
+    flex: 1,
+    gap: 3,
+  },
+  orderCardTitle: {
+    fontFamily: 'Montserrat_700Bold',
+    fontSize: 15,
+    color: '#0f172a',
+  },
+  statusText: {
+    fontFamily: 'Montserrat_600SemiBold',
+    fontSize: 13,
+  },
+  orderCardRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  orderCardRightContent: {
+    alignItems: 'flex-end',
+    gap: 2,
+  },
+  orderCardTotal: {
+    fontFamily: 'Montserrat_700Bold',
+    fontSize: 15,
+    color: '#0f172a',
+  },
+  orderCardDate: {
+    fontFamily: 'Montserrat_500Medium',
+    fontSize: 12,
+    color: '#94a3b8',
+  },
+
+  /* Status Colors */
+  statusComplete: { color: '#22c55e' },
+  statusPending: { color: '#3b82f6' },
+  statusProcessing: { color: '#22c55e' },
+  statusShipped: { color: '#22c55e' },
+  statusCanceled: { color: '#ef4444' },
+  statusDefault: { color: '#64748b' },
+
+  iconBgComplete: { backgroundColor: 'rgba(34, 197, 94, 0.12)' },
+  iconBgPending: { backgroundColor: 'rgba(59, 130, 246, 0.12)' },
+  iconBgProcessing: { backgroundColor: 'rgba(34, 197, 94, 0.12)' },
+  iconBgShipped: { backgroundColor: 'rgba(34, 197, 94, 0.12)' },
+  iconBgCanceled: { backgroundColor: 'rgba(239, 68, 68, 0.12)' },
+  iconBgDefault: { backgroundColor: 'rgba(100, 116, 139, 0.1)' },
+
+  /* Details View */
+  detailsContent: {
+    gap: 16,
+  },
+  detailsStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    marginTop: -4,
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+    backgroundColor: '#f1f5f9',
+  },
+  detailsBlock: {
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 16,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    gap: 12,
+  },
+  blockTitle: {
+    fontFamily: 'Montserrat_700Bold',
+    fontSize: 16,
+    color: '#0f172a',
+  },
+
+  /* Products in details */
+  productsList: {
+    gap: 10,
+  },
+  productItem: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 14,
+    padding: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  productImgBox: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#e2e8f0',
+    borderWidth: 1,
+    borderColor: '#ffffff',
+  },
+  productImg: {
+    width: '100%',
+    height: '100%',
+  },
+  productBody: {
+    flex: 1,
+    gap: 4,
+  },
+  productInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  productName: {
+    fontFamily: 'Montserrat_600SemiBold',
+    fontSize: 13,
+    color: '#0f172a',
+    flex: 1,
+    lineHeight: 18,
+  },
+  productPrice: {
+    fontFamily: 'Montserrat_500Medium',
+    fontSize: 12,
+    color: '#94a3b8',
+  },
+  productAmountRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  productQty: {
+    fontFamily: 'Montserrat_500Medium',
+    fontSize: 13,
+    color: '#64748b',
+  },
+  productTotal: {
+    fontFamily: 'Montserrat_700Bold',
+    fontSize: 13,
+    color: '#0f172a',
+  },
+
+  /* Address box */
+  addressBox: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 14,
+    padding: 12,
+    gap: 6,
+  },
+  addressLine: {
+    fontFamily: 'Montserrat_400Regular',
+    fontSize: 13,
+    color: '#334155',
+    lineHeight: 19,
+  },
+  addressLabel: {
+    fontFamily: 'Montserrat_700Bold',
+    color: '#0f172a',
+  },
+
+  /* Totals */
+  totalLine: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 2,
+  },
+  totalTitle: {
+    fontFamily: 'Montserrat_500Medium',
+    fontSize: 14,
+    color: '#64748b',
+  },
+  totalVal: {
+    fontFamily: 'Montserrat_600SemiBold',
+    fontSize: 14,
+    color: '#0f172a',
+  },
+  totalLineFinal: {
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+    borderStyle: 'dashed',
+  },
+  totalTitleFinal: {
+    fontFamily: 'Montserrat_700Bold',
+    fontSize: 16,
+    color: '#0f172a',
+  },
+  totalValFinal: {
+    fontFamily: 'Montserrat_800ExtraBold',
+    fontSize: 18,
+    color: '#2d4e6a',
+  },
+
+  /* Payment Block */
+  payCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    overflow: 'hidden',
+  },
+  payCardMain: {
+    padding: 16,
+    alignItems: 'center',
+    gap: 4,
+  },
+  payCardLabel: {
+    fontFamily: 'Montserrat_700Bold',
+    fontSize: 11,
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  payCardValue: {
+    fontFamily: 'Montserrat_700Bold',
+    fontSize: 22,
+    color: '#8ec0ed',
+  },
+  payCardFooter: {
+    backgroundColor: '#fff5f5',
+    borderTopWidth: 1,
+    borderTopColor: '#fee2e2',
+    borderStyle: 'dashed',
+    padding: 14,
+    alignItems: 'center',
+    gap: 4,
+  },
+  payFooterTxt: {
+    fontFamily: 'Montserrat_700Bold',
+    fontSize: 11,
+    color: '#ef4444',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    textAlign: 'center',
+  },
+  payFooterVal: {
+    fontFamily: 'Montserrat_700Bold',
+    fontSize: 20,
+    color: '#dc2626',
+  },
+  payInfoText: {
+    fontFamily: 'Montserrat_500Medium',
+    fontSize: 13,
+    color: '#64748b',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  payInfoTextBold: {
+    fontFamily: 'Montserrat_700Bold',
+    color: '#0f172a',
+  },
+  btnPayOrder: {
+    height: 48,
+    backgroundColor: '#3b82f6',
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  btnPayOrderText: {
+    fontFamily: 'Montserrat_700Bold',
+    fontSize: 15,
+    color: '#ffffff',
+  },
+  btnPayTg: {
+    height: 48,
+    backgroundColor: '#8ec0ed',
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#8ec0ed',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  btnPayTgText: {
+    fontFamily: 'Montserrat_700Bold',
+    fontSize: 15,
+    color: '#ffffff',
+  },
+
+  /* Timeline */
+  timeline: {
+    gap: 16,
+    paddingVertical: 6,
+  },
+  timelineItem: {
+    flexDirection: 'row',
+    gap: 14,
+  },
+  timelineIndicatorBox: {
+    alignItems: 'center',
+    width: 20,
+  },
+  timelineIndicator: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#ffffff',
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  timelineIndicatorActiveBlue: {
+    borderColor: 'rgba(230, 140, 51, 0.4)',
+  },
+  timelineIndicatorActiveGreen: {
+    borderColor: 'rgba(34, 197, 94, 0.4)',
+  },
+  timelineIndicatorActiveRed: {
+    borderColor: 'rgba(239, 68, 68, 0.4)',
+  },
+  timelineDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#b2bec3',
+  },
+  timelineDotBlue: { backgroundColor: '#e68c33' },
+  timelineDotGreen: { backgroundColor: '#22c55e' },
+  timelineDotRed: { backgroundColor: '#ef4444' },
+  timelineLine: {
+    width: 1,
+    flex: 1,
+    backgroundColor: '#e2e8f0',
+    marginTop: 4,
+  },
+  timelineContent: {
+    flex: 1,
+    gap: 3,
+  },
+  timelineStatus: {
+    fontFamily: 'Montserrat_700Bold',
+    fontSize: 14,
+    color: '#0f172a',
+  },
+  timelineDate: {
+    fontFamily: 'Montserrat_500Medium',
+    fontSize: 11,
+    color: '#94a3b8',
+  },
+  timelineComment: {
+    fontFamily: 'Montserrat_400Regular',
+    fontSize: 12,
+    color: '#475569',
+    lineHeight: 17,
+    marginTop: 2,
+  },
+
+  /* Support Area */
+  supportArea: {
+    gap: 12,
+    marginTop: 4,
+  },
+  supportMsgBox: {
+    backgroundColor: 'rgba(142, 192, 237, 0.08)',
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(142, 192, 237, 0.15)',
+  },
+  supportMsgText: {
+    fontFamily: 'Montserrat_500Medium',
+    fontSize: 12,
+    color: '#2d4e6a',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  btnSupport: {
+    height: 48,
+    backgroundColor: '#ec9f19',
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#ec9f19',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  btnSupportText: {
+    fontFamily: 'Montserrat_700Bold',
+    fontSize: 14,
+    color: '#ffffff',
+  },
+});
+

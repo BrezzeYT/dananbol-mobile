@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "403424919399",
+    "project_id": "danabol-mobile",
+    "storage_bucket": "danabol-mobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:403424919399:android:41e8834f5bd411e8fcb9c2",
+        "android_client_info": {
+          "package_name": "com.danabol.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwx_fmqLhyZtJkS5KWcMExOJeGBG3Ut_g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -272,7 +272,7 @@ export default function HomeScreen() {
           onPress={() => handleCategorySelect(cat.id)}
           activeOpacity={0.7}
         >
-          <Text style={[styles.chipText, isSelected && styles.chipTextWhite]}>
+          <Text style={[styles.chipText, isSelected && styles.categoryChipTextActive]}>
             {cat.name}
           </Text>
         </TouchableOpacity>
@@ -289,7 +289,7 @@ export default function HomeScreen() {
           onPress={() => handleSubcategorySelect(subcat.id)}
           activeOpacity={0.7}
         >
-          <Text style={[styles.chipText, isSelected && styles.chipTextWhite]}>
+          <Text style={[styles.chipText, isSelected && styles.subcategoryChipTextActive]}>
             {subcat.name}
           </Text>
         </TouchableOpacity>

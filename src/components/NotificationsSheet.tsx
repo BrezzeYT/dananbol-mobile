@@ -3,6 +3,7 @@ import {
   Modal,
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   ScrollView,
@@ -12,7 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BackendNotification } from '../api/notifications';
-import { BellIcon, CheckIcon, CloseIcon } from './icons';
+import { BellIcon, CheckIcon, ChevronDownIcon, CloseIcon, SearchIcon } from './icons';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
@@ -42,12 +43,16 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
   const [modalVisible, setModalVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [newestFirst, setNewestFirst] = useState(true);
 
   const overlayOpacity = useRef(new Animated.Value(0)).current;
   const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
   useEffect(() => {
     if (visible) {
+      setSearchQuery('');
+      setNewestFirst(true);
       setModalVisible(true);
       Animated.parallel([
         Animated.timing(overlayOpacity, {
@@ -82,6 +87,16 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({
       });
     }
   }, [visible]);
+
+  const normalizedQuery = searchQuery.trim().toLocaleLowerCase('ru-RU');
+  const visibleNotifications = notifications
+    .filter((item) =>
+      [item.message, item.date_added, item.type === 'success' ? 'успех успешно' : 'информация']
+        .some((value) => value.toLocaleLowerCase('ru-RU').includes(normalizedQuery))
+    )
+    .sort((a, b) =>
+      newestFirst ? b.timestamp - a.timestamp : a.timestamp - b.timestamp
+    );
 
   const renderMessageWithOrderLink = (message: string) => {
     const regex = /#\s*(\d+)/g;
@@ -176,57 +191,97 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({
                     </Text>
                   </View>
                 ) : (
-                  <ScrollView
-                    style={styles.scrollList}
-                    contentContainerStyle={styles.listContent}
-                    showsVerticalScrollIndicator={false}
-                  >
-                    {notifications.map((item) => {
-                      const isSuccess = item.type === 'success';
-                      return (
-                        <View
-                          key={item.id}
-                          style={[
-                            styles.itemCard,
-                            isSuccess
-                              ? styles.itemCardSuccess
-                              : styles.itemCardInfo,
-                          ]}
-                        >
-                          <View
-                            style={[
-                              styles.iconWrapper,
-                              isSuccess
-                                ? styles.iconWrapperSuccess
-                                : styles.iconWrapperInfo,
-                            ]}
-                          >
-                            {isSuccess ? (
-                              <CheckIcon
-                                size={14}
-                                color="#22c55e"
-                                strokeWidth={2.75}
-                              />
-                            ) : (
-                              <BellIcon
-                                size={14}
-                                color="#3b82f6"
-                                strokeWidth={2.25}
-                              />
-                            )}
-                          </View>
-                          <View style={styles.itemBody}>
-                            <Text style={styles.itemText}>
-                              {renderMessageWithOrderLink(item.message)}
-                            </Text>
-                            <Text style={styles.itemTime}>
-                              {formatNotificationTime(item.date_added)}
-                            </Text>
-                          </View>
-                        </View>
-                      );
-                    })}
-                  </ScrollView>
+                  <>
+                    <View style={styles.toolbar}>
+                      <View style={styles.searchBox}>
+                        <SearchIcon size={18} color="#94a3b8" strokeWidth={2} />
+                        <TextInput
+                          style={styles.searchInput}
+                          value={searchQuery}
+                          onChangeText={setSearchQuery}
+                          placeholder="Найти оповещение"
+                          placeholderTextColor="#94a3b8"
+                          accessibilityLabel="Поиск по оповещениям"
+                          returnKeyType="search"
+                          autoCorrect={false}
+                        />
+                      </View>
+                      <TouchableOpacity
+                        style={styles.sortButton}
+                        onPress={() => setNewestFirst((current) => !current)}
+                        activeOpacity={0.75}
+                        accessibilityRole="button"
+                        accessibilityLabel={newestFirst ? 'Сначала новые' : 'Сначала старые'}
+                      >
+                        <Text style={styles.sortButtonText}>
+                          {newestFirst ? 'Новые' : 'Старые'}
+                        </Text>
+                        <ChevronDownIcon
+                          size={15}
+                          color="#64748b"
+                          rotate={newestFirst ? '0deg' : '180deg'}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                    {visibleNotifications.length === 0 ? (
+                      <View style={styles.emptySearchContainer}>
+                        <Text style={styles.emptyText}>По этому запросу оповещений нет</Text>
+                      </View>
+                    ) : (
+                      <ScrollView
+                        style={styles.scrollList}
+                        contentContainerStyle={styles.listContent}
+                        showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
+                      >
+                        {visibleNotifications.map((item) => {
+                          const isSuccess = item.type === 'success';
+                          return (
+                            <View
+                              key={item.id}
+                              style={[
+                                styles.itemCard,
+                                isSuccess
+                                  ? styles.itemCardSuccess
+                                  : styles.itemCardInfo,
+                              ]}
+                            >
+                              <View
+                                style={[
+                                  styles.iconWrapper,
+                                  isSuccess
+                                    ? styles.iconWrapperSuccess
+                                    : styles.iconWrapperInfo,
+                                ]}
+                              >
+                                {isSuccess ? (
+                                  <CheckIcon
+                                    size={14}
+                                    color="#22c55e"
+                                    strokeWidth={2.75}
+                                  />
+                                ) : (
+                                  <BellIcon
+                                    size={14}
+                                    color="#3b82f6"
+                                    strokeWidth={2.25}
+                                  />
+                                )}
+                              </View>
+                              <View style={styles.itemBody}>
+                                <Text style={styles.itemText}>
+                                  {renderMessageWithOrderLink(item.message)}
+                                </Text>
+                                <Text style={styles.itemTime}>
+                                  {formatNotificationTime(item.date_added)}
+                                </Text>
+                              </View>
+                            </View>
+                          );
+                        })}
+                      </ScrollView>
+                    )}
+                  </>
                 )}
               </View>
             </Animated.View>
@@ -302,6 +357,59 @@ const styles = StyleSheet.create({
   content: {
     maxHeight: 450,
   },
+  toolbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 2,
+  },
+  searchBox: {
+    flex: 1,
+    minWidth: 0,
+    height: 46,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    paddingHorizontal: 12,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 14,
+  },
+  searchInput: {
+    flex: 1,
+    minWidth: 0,
+    height: '100%',
+    padding: 0,
+    fontFamily: 'Montserrat_500Medium',
+    fontSize: 13,
+    color: '#1e293b',
+  },
+  sortButton: {
+    height: 46,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    paddingHorizontal: 11,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 14,
+  },
+  sortButtonText: {
+    fontFamily: 'Montserrat_600SemiBold',
+    fontSize: 12,
+    color: '#475569',
+  },
+  emptySearchContainer: {
+    minHeight: 150,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   emptyContainer: {
     paddingVertical: 56,
     paddingHorizontal: 24,
@@ -321,6 +429,7 @@ const styles = StyleSheet.create({
   },
   scrollList: {
     paddingHorizontal: 16,
+    maxHeight: 390,
   },
   listContent: {
     paddingTop: 12,

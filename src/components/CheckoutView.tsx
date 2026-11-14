@@ -965,40 +965,6 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({ onBack, onGoHome, on
             ? <ActivityIndicator size="small" color="#ffffff" />
             : <Text style={s.orderBtnTxt}>Оформить заказ</Text>}
         </TouchableOpacity>
-
-
-        <TouchableOpacity
-          style={[s.orderBtn, { backgroundColor: '#3b82f6', marginTop: 10, shadowColor: '#3b82f6' }]}
-          onPress={() => {
-            const demoTotal = displayTotal || 74918;
-            const curBalance = customer?.balance ?? 73878.1;
-            const isOrderPaid = curBalance >= demoTotal;
-            const demoItems = validItems.length > 0 ? [...validItems] : [
-              {
-                product: {
-                  id: 9991,
-                  name: 'ANAPOLON 50 CANADA 10ml|50mg Ампулы',
-                  price: 3290,
-                  avatar: 'https://danabol.life/image/cache/catalog/canada/anapolon-500x500.png',
-                } as Product,
-                quantity: 27,
-              },
-            ];
-
-            setPendingSuccess({
-              orderId: 294740,
-              managerLink: 'https://telegram.me/danabol_support',
-              isPaid: isOrderPaid,
-              totalAmount: demoTotal,
-              items: demoItems,
-            });
-            setShowLoader(true);
-          }}
-          activeOpacity={0.85}
-        >
-          <Text style={s.orderBtnTxt}>Тест анимации заказа (Demo)</Text>
-        </TouchableOpacity>
-
       </ScrollView>
     </View>
   );

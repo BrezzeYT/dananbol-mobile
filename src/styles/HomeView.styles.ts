@@ -62,12 +62,22 @@ export const styles = StyleSheet.create({
     borderColor: "#fecaca",
   },
   categoryChipActive: {
-    backgroundColor: "#f59e0b",
-    borderColor: "#f59e0b",
+    backgroundColor: "rgba(245, 158, 11, 0.2)",
+    borderColor: "rgba(245, 158, 11, 0.52)",
+    shadowColor: "#f59e0b",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 1,
   },
   subcategoryChipActive: {
-    backgroundColor: "#8ebce6",
-    borderColor: "#8ebce6",
+    backgroundColor: "rgba(142, 188, 230, 0.24)",
+    borderColor: "rgba(92, 151, 203, 0.46)",
+    shadowColor: "#8ebce6",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    elevation: 1,
   },
   chipText: {
     fontFamily: "Montserrat_600SemiBold",
@@ -81,14 +91,11 @@ export const styles = StyleSheet.create({
   chipTextPromoActive: {
     color: "#ef4444",
   },
-  chipTextWhite: {
-    color: "#ffffff",
-  },
   categoryChipTextActive: {
-    color: "#ffffff",
+    color: "#b45309",
   },
   subcategoryChipTextActive: {
-    color: "#ffffff",
+    color: "#3f6f98",
   },
   horizontalTrackWrapper: {
     flexDirection: "row",

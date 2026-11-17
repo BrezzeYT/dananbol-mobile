@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { BlurTargetView } from 'expo-blur';
 import { SearchIcon, ChevronDownIcon } from '../components/icons';
 import { Header } from '../components/Header';
 import { ProductCard } from '../components/ProductCard';
@@ -63,6 +64,7 @@ export default function HomeScreen() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const catalogListRef = useRef<FlatList<Product>>(null);
+  const bottomNavBlurTarget = useRef<View | null>(null);
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showTopupModal, setShowTopupModal] = useState(false);
@@ -504,45 +506,48 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <Header
-        balance={customer?.balance ?? 0}
-        isLoggedIn={isLoggedIn}
-        unreadCount={
-          isLoggedIn
-            ? notifications.filter((n) => n.timestamp > lastReadTime).length
-            : 0
-        }
-        isBellActive={
-          showNotifications ||
-          (isLoggedIn &&
-            notifications.some((n) => n.timestamp > lastReadTime))
-        }
-        onBalancePress={() => {
-          if (!isLoggedIn) {
-            openAuth();
-          } else {
-            setShowTopupModal(true);
+      <BlurTargetView ref={bottomNavBlurTarget} style={{ flex: 1 }}>
+        <Header
+          balance={customer?.balance ?? 0}
+          isLoggedIn={isLoggedIn}
+          unreadCount={
+            isLoggedIn
+              ? notifications.filter((n) => n.timestamp > lastReadTime).length
+              : 0
           }
-        }}
-        onBellPress={handleBellPress}
-        onProfilePress={() => {
-          if (!isLoggedIn) {
-            openAuth();
-          } else {
-            setTargetProfileOrderId(null);
-            switchTab('profile');
+          isBellActive={
+            showNotifications ||
+            (isLoggedIn &&
+              notifications.some((n) => n.timestamp > lastReadTime))
           }
-        }}
-        onLogoPress={() => switchTab('home')}
-      />
+          onBalancePress={() => {
+            if (!isLoggedIn) {
+              openAuth();
+            } else {
+              setShowTopupModal(true);
+            }
+          }}
+          onBellPress={handleBellPress}
+          onProfilePress={() => {
+            if (!isLoggedIn) {
+              openAuth();
+            } else {
+              setTargetProfileOrderId(null);
+              switchTab('profile');
+            }
+          }}
+          onLogoPress={() => switchTab('home')}
+        />
 
-      <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-        {renderContent()}
-      </View>
+        <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
+          {renderContent()}
+        </View>
+      </BlurTargetView>
 
       <BottomNav
         activePage={isCheckingOut ? 'cart' : activeTab}
         cartCount={totalCount}
+        blurTarget={bottomNavBlurTarget}
         onHome={() => switchTab('home')}
         onCart={() => {
           setIsCheckingOut(false);

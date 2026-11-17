@@ -1,14 +1,22 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform, Animated, Easing } from 'react-native';
+import {
+  Animated,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
 import { GlassView } from 'expo-glass-effect';
 import { hapticLight } from '../services/haptics';
 import {
-  HomeIcon,
   CartIcon,
-  UserIcon,
   CompassIcon,
+  HomeIcon,
   MessageSquareIcon,
+  UserIcon,
 } from './icons';
 
 export type BottomNavPage =
@@ -21,6 +29,7 @@ export type BottomNavPage =
 interface BottomNavProps {
   activePage: BottomNavPage;
   cartCount?: number;
+  blurTarget?: React.RefObject<View | null>;
   onHome: () => void;
   onCart: () => void;
   onProfile: () => void;
@@ -31,6 +40,7 @@ interface BottomNavProps {
 export const BottomNav: React.FC<BottomNavProps> = ({
   activePage,
   cartCount = 0,
+  blurTarget,
   onHome,
   onCart,
   onProfile,
@@ -43,36 +53,15 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   const hasPositionedIndicator = React.useRef(false);
 
   const items = [
-    {
-      id: 'home' as BottomNavPage,
-      icon: HomeIcon,
-      onPress: onHome,
-    },
-    {
-      id: 'cart' as BottomNavPage,
-      icon: CartIcon,
-      onPress: onCart,
-      hasBadge: true,
-    },
-    {
-      id: 'profile' as BottomNavPage,
-      icon: UserIcon,
-      onPress: onProfile,
-    },
-    {
-      id: 'contacts' as BottomNavPage,
-      icon: CompassIcon,
-      onPress: onContacts,
-    },
-    {
-      id: 'support' as BottomNavPage,
-      icon: MessageSquareIcon,
-      onPress: onSupport,
-    },
+    { id: 'home' as BottomNavPage, icon: HomeIcon, onPress: onHome },
+    { id: 'cart' as BottomNavPage, icon: CartIcon, onPress: onCart, hasBadge: true },
+    { id: 'profile' as BottomNavPage, icon: UserIcon, onPress: onProfile },
+    { id: 'contacts' as BottomNavPage, icon: CompassIcon, onPress: onContacts },
+    { id: 'support' as BottomNavPage, icon: MessageSquareIcon, onPress: onSupport },
   ];
 
   const activeIndex = items.findIndex((item) => item.id === activePage);
-  const tabWidth = navWidth > 14.4 ? (navWidth - 14.4) / items.length : 0;
+  const tabWidth = navWidth > 14 ? (navWidth - 14) / items.length : 0;
   const indicatorWidth = Math.max(44, tabWidth - 8);
 
   React.useEffect(() => {
@@ -83,82 +72,102 @@ export const BottomNav: React.FC<BottomNavProps> = ({
       hasPositionedIndicator.current = true;
       return;
     }
-    const animation = Animated.timing(indicatorX, {
+    const animation = Animated.spring(indicatorX, {
       toValue: targetX,
-      duration: 250,
-      easing: Easing.inOut(Easing.cubic),
+      stiffness: 300,
+      damping: 32,
+      mass: 0.8,
       useNativeDriver: true,
     });
     animation.start();
     return () => animation.stop();
   }, [activeIndex, indicatorWidth, indicatorX, navWidth, tabWidth]);
 
+  const navContent = (
+    <>
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.activePill,
+          {
+            left: 7,
+            width: indicatorWidth,
+            transform: [{ translateX: indicatorX }],
+          },
+        ]}
+      />
+      {items.map((item) => {
+        const isActive = activePage === item.id;
+        const IconComponent = item.icon;
+
+        return (
+          <TouchableOpacity
+            key={item.id}
+            style={styles.navItem}
+            onPress={() => {
+              hapticLight();
+              item.onPress();
+            }}
+            activeOpacity={1}
+          >
+            <View style={styles.iconWrap}>
+              <IconComponent
+                size={25}
+                color={isActive ? '#f28c28' : '#64748b'}
+                strokeWidth={2.1}
+              />
+              {item.hasBadge && cartCount > 0 && (
+                <View
+                  style={[
+                    styles.badge,
+                    { width: cartCount > 99 ? 26 : cartCount > 9 ? 22 : 18 },
+                  ]}
+                >
+                  <Text style={styles.badgeText}>
+                    {cartCount > 99 ? '99+' : cartCount}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+        );
+      })}
+    </>
+  );
+
   return (
     <View
-      style={[
-        styles.navWrapper,
-        { bottom: Math.max(insets.bottom, 10) },
-      ]}
+      style={[styles.navWrapper, { bottom: Math.max(insets.bottom, 10) }]}
       pointerEvents="box-none"
     >
-      <GlassView
-        glassEffectStyle="regular"
-        tintColor={Platform.OS === 'ios' ? '#ebf4fc' : undefined}
-        style={styles.navBar}
-        onLayout={(event) => setNavWidth(event.nativeEvent.layout.width)}
-      >
-        <Animated.View
-          pointerEvents="none"
-          style={[
-            styles.activePill,
-            {
-              left: 7.2,
-              width: indicatorWidth,
-              transform: [{ translateX: indicatorX }],
-            },
-          ]}
-        />
-        {items.map((item) => {
-          const isActive = activePage === item.id;
-          const IconComponent = item.icon;
-          const iconColor = isActive ? '#f28c28' : '#64748b';
-
-          const handlePress = () => {
-            hapticLight();
-            item.onPress();
-          };
-
-          return (
-            <TouchableOpacity
-              key={item.id}
-              style={[
-                styles.navItem,
-              ]}
-              onPress={handlePress}
-              activeOpacity={1}
-            >
-              <View style={styles.iconWrap}>
-                <IconComponent
-                  size={25}
-                  color={iconColor}
-                  strokeWidth={2.1}
-                />
-                {item.hasBadge && cartCount > 0 && (
-                  <View
-                    style={[
-                      styles.badge,
-                      { width: cartCount > 99 ? 26 : cartCount > 9 ? 22 : 18 },
-                    ]}
-                  >
-                    <Text style={styles.badgeText}>{cartCount > 99 ? '99+' : cartCount}</Text>
-                  </View>
-                )}
-              </View>
-
-            </TouchableOpacity>
-          );
-        })}
-      </GlassView>
+      <View style={styles.navShadow}>
+        {Platform.OS === 'android' ? (
+          <View
+            style={styles.androidBar}
+            onLayout={(event) => setNavWidth(event.nativeEvent.layout.width)}
+          >
+            <BlurView
+              pointerEvents="none"
+              blurTarget={blurTarget}
+              blurMethod="dimezisBlurViewSdk31Plus"
+              blurReductionFactor={2}
+              intensity={64}
+              tint="light"
+              style={StyleSheet.absoluteFill}
+            />
+            {navContent}
+          </View>
+        ) : (
+          <GlassView
+            glassEffectStyle="regular"
+            tintColor={Platform.OS === 'ios' ? '#ebf4fc' : undefined}
+            style={styles.otherBar}
+            onLayout={(event) => setNavWidth(event.nativeEvent.layout.width)}
+          >
+            {navContent}
+          </GlassView>
+        )}
+      </View>
     </View>
   );
 };
@@ -173,38 +182,49 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     zIndex: 100,
   },
-  navBar: {
+  navShadow: {
     width: '100%',
     maxWidth: 430,
-    height: 56,
+    height: 52,
+    borderRadius: 26,
+    shadowColor: '#8ec0ed',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 14,
+    elevation: 4,
+  },
+  androidBar: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 6,
-    paddingVertical: 5,
-    backgroundColor: Platform.select({
-      ios: 'transparent',
-      default: 'rgba(235, 244, 252, 0.3)',
-    }),
-    borderWidth: 1.2,
-    borderBottomWidth: 0,
-    borderColor: 'rgba(255, 255, 255, 0.56)',
-    borderRadius: 24,
-    shadowColor: '#8ec0ed',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 6,
+    paddingVertical: 4,
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.58)',
+    overflow: 'hidden',
+    backgroundColor: 'transparent',
+  },
+  otherBar: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.58)',
+    backgroundColor: Platform.OS === 'ios' ? 'transparent' : 'rgba(235, 244, 252, 0.84)',
   },
   navItem: {
     flex: 1,
     flexBasis: 0,
-    height: 42,
-    position: 'relative',
+    height: 40,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 16,
   },
   iconWrap: {
     width: 28,
@@ -215,17 +235,10 @@ const styles = StyleSheet.create({
   },
   activePill: {
     position: 'absolute',
-    top: 7,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: 'rgba(255, 255, 255, 0.34)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.72)',
-    shadowColor: '#f28c28',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 5,
-    elevation: 1,
+    top: 6,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(242, 140, 40, 0.14)',
   },
   badge: {
     position: 'absolute',

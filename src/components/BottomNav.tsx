@@ -73,15 +73,11 @@ export const BottomNav: React.FC<BottomNavProps> = ({
 
   const activeIndex = items.findIndex((item) => item.id === activePage);
   const tabWidth = navWidth > 14.4 ? (navWidth - 14.4) / items.length : 0;
-  const activeCenter = 7.2 + tabWidth * (activeIndex + 0.5);
-  const edgeClearance = Math.min(activeCenter - 18, navWidth - 18 - activeCenter);
-  const coneSpread = navWidth > 0
-    ? Math.max(0, Math.min(23, edgeClearance - 12))
-    : 0;
+  const indicatorWidth = Math.max(44, tabWidth - 8);
 
   React.useEffect(() => {
     if (!navWidth || activeIndex < 0) return;
-    const targetX = tabWidth * activeIndex + (tabWidth - 24) / 2;
+    const targetX = tabWidth * activeIndex + (tabWidth - indicatorWidth) / 2;
     if (!hasPositionedIndicator.current) {
       indicatorX.setValue(targetX);
       hasPositionedIndicator.current = true;
@@ -95,7 +91,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     });
     animation.start();
     return () => animation.stop();
-  }, [activeIndex, indicatorX, navWidth, tabWidth]);
+  }, [activeIndex, indicatorWidth, indicatorX, navWidth, tabWidth]);
 
   return (
     <View
@@ -114,18 +110,13 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         <Animated.View
           pointerEvents="none"
           style={[
-            styles.activeGlow,
+            styles.activePill,
             {
-              left: 7.2 - coneSpread,
-              borderLeftWidth: coneSpread,
-              borderRightWidth: coneSpread,
+              left: 7.2,
+              width: indicatorWidth,
               transform: [{ translateX: indicatorX }],
             },
           ]}
-        />
-        <Animated.View
-          pointerEvents="none"
-          style={[styles.activeLight, { transform: [{ translateX: indicatorX }] }]}
         />
         {items.map((item) => {
           const isActive = activePage === item.id;
@@ -196,6 +187,7 @@ const styles = StyleSheet.create({
       default: 'rgba(235, 244, 252, 0.3)',
     }),
     borderWidth: 1.2,
+    borderBottomWidth: 0,
     borderColor: 'rgba(255, 255, 255, 0.56)',
     borderRadius: 24,
     shadowColor: '#8ec0ed',
@@ -221,30 +213,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  activeGlow: {
+  activePill: {
     position: 'absolute',
-    top: -1,
-    boxSizing: 'content-box',
-    width: 24,
-    height: 0,
-    borderBottomWidth: 56,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderBottomColor: 'rgba(90, 168, 232, 0.07)',
-  },
-  activeLight: {
-    position: 'absolute',
-    top: -1,
-    left: 7.2,
-    width: 24,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#8ec0ed',
-    shadowColor: '#5aa8e8',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.9,
-    shadowRadius: 9,
-    elevation: 3,
+    top: 7,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: 'rgba(255, 255, 255, 0.34)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.72)',
+    shadowColor: '#f28c28',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+    elevation: 1,
   },
   badge: {
     position: 'absolute',

@@ -268,18 +268,16 @@ export const SupportView: React.FC<SupportViewProps> = ({
   if (!customer) {
     return (
       <View style={s.authScreen}>
-        <View style={s.authCard}>
-          <View style={s.authIcon}>
-            <MessageSquareIcon size={34} color="#8ec0ed" />
-          </View>
-          <Text style={s.authTitle}>Чат с поддержкой</Text>
-          <Text style={s.authDescription}>
-            Чтобы обратиться в службу поддержки и просмотреть ваши обращения, пожалуйста, войдите в аккаунт.
-          </Text>
-          <TouchableOpacity style={s.authButton} onPress={openAuth} activeOpacity={0.85}>
-            <Text style={s.authButtonText}>Войти в аккаунт</Text>
-          </TouchableOpacity>
+        <View style={s.authIcon}>
+          <MessageSquareIcon size={44} color="#e68c33" strokeWidth={1.5} />
         </View>
+        <Text style={s.authTitle}>Чат с поддержкой</Text>
+        <Text style={s.authDescription}>
+          Войдите в аккаунт, чтобы обратиться в службу поддержки и просмотреть обращения.
+        </Text>
+        <TouchableOpacity style={s.authButton} onPress={openAuth} activeOpacity={0.85}>
+          <Text style={s.authButtonText}>Войти в аккаунт</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -308,7 +306,7 @@ export const SupportView: React.FC<SupportViewProps> = ({
   return (
     <KeyboardAvoidingView
       style={s.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior="padding"
       keyboardVerticalOffset={0}
     >
       <View style={s.header}>

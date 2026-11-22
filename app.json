@@ -16,6 +16,7 @@
     },
     "android": {
       "package": "com.danabol.mobile",
+      "softwareKeyboardLayoutMode": "resize",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
@@ -59,8 +60,9 @@
         }
       },
       "eas": {
-        "projectId": "5c081267-7f03-4c8f-a26d-30a5a23e49be"
+        "projectId": "2505b5d7-7eb7-41ae-b72d-3eee7282fee0"
       }
-    }
+    },
+    "owner": "brezze1234"
   }
 }

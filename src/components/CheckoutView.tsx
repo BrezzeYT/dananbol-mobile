@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import Svg, { Circle, ClipPath, Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCartContext } from '../context/useCartContext';
 import { useAuthContext } from '../context/useAuthContext';
 import {
@@ -98,14 +99,20 @@ const OrderSuccessScreen: React.FC<{
   onClose: () => void;
   onTopUp: () => void;
 }> = ({ data, balance, onClose, onTopUp }) => {
+  const insets = useSafeAreaInsets();
   const shortfall = Math.max(0, data.totalAmount - balance);
   const formattedShortfall = shortfall.toLocaleString('ru-RU', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
+  const bottomActionClearance = Math.max(48, Math.max(insets.bottom, 10) + 52 + 16);
 
   return (
-    <ScrollView style={s.successContainer} contentContainerStyle={s.successInner} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={s.successContainer}
+      contentContainerStyle={[s.successInner, { paddingBottom: bottomActionClearance }]}
+      showsVerticalScrollIndicator={false}
+    >
 
       <View style={s.successSubHeader}>
         <Text style={s.successTitle}>Заказ #{data.orderId}</Text>

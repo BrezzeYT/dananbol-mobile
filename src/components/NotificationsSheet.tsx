@@ -141,6 +141,8 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({
       visible={modalVisible}
       transparent
       animationType="none"
+      statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={onClose}
     >
       <TouchableWithoutFeedback onPress={onClose}>

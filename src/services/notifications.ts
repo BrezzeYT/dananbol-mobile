@@ -16,9 +16,7 @@ if (Platform.OS !== "web") {
         priority: Notifications?.AndroidNotificationPriority?.MAX,
       }),
     });
-  } catch (err) {
-    console.debug("Failed to load expo-notifications:", err);
-  }
+  } catch {}
 }
 
 export async function initNotifications(): Promise<boolean> {
@@ -45,8 +43,7 @@ export async function initNotifications(): Promise<boolean> {
     }
 
     return finalStatus === "granted";
-  } catch (err) {
-    console.debug("Failed to init notifications:", err);
+  } catch {
     return false;
   }
 }
@@ -69,13 +66,12 @@ export async function showLocalNotification(
       },
       trigger: (Platform.OS === 'android' ? { channelId: 'default' } : null) as any,
     });
-  } catch (err) {
-    console.debug("Failed to schedule local notification:", err);
-  }
+  } catch {}
 }
 
 export function subscribeToNotificationClick(
   onOrderClick: (orderId: string) => void,
+  onSupportReply?: () => void,
 ): () => void {
   if (Platform.OS === "web" || !Notifications) return () => {};
 
@@ -83,6 +79,10 @@ export function subscribeToNotificationClick(
     const sub = Notifications.addNotificationResponseReceivedListener(
       (response) => {
         const data = response.notification.request.content.data;
+        if (data && data.type === "support_reply") {
+          onSupportReply?.();
+          return;
+        }
         if (data && data.orderId) {
           onOrderClick(String(data.orderId));
         }
@@ -106,8 +106,7 @@ export async function getPushToken(): Promise<string | null> {
       "5c081267-7f03-4c8f-a26d-30a5a23e49be";
     const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
     return tokenData.data;
-  } catch (err) {
-    console.debug("Could not get Expo Push Token:", err);
+  } catch {
     return null;
   }
 }

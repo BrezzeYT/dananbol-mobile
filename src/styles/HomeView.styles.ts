@@ -1,6 +1,10 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
+  splashScreenRoot: {
+    flex: 1,
+    backgroundColor: '#080e15',
+  },
   safeArea: {
     flex: 1,
     backgroundColor: "#ffffff",

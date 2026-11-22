@@ -1,10 +1,13 @@
+import { Platform } from 'react-native';
 import { MOBILE_API_ROUTE } from '../config/constants';
 import { buildMobileUrl, getMobileHeaders, handleApiResponse } from './common';
 
 export interface BackendNotification {
   id: string;
+  title?: string;
   message: string;
   type: 'success' | 'info';
+  source?: string;
   timestamp: number;
   date_added: string;
 }
@@ -70,7 +73,7 @@ export async function registerPushToken(
   const res = await fetch(url, {
     method: 'POST',
     headers: getMobileHeaders({ 'Content-Type': 'application/json' }, token),
-    body: JSON.stringify({ push_token: pushToken }),
+    body: JSON.stringify({ push_token: pushToken, platform: Platform.OS }),
   });
 
   return handleApiResponse<{ ok: boolean }>(res);

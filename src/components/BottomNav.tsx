@@ -13,8 +13,8 @@ import { GlassView } from 'expo-glass-effect';
 import { hapticLight } from '../services/haptics';
 import {
   CartIcon,
+  CatalogIcon,
   CompassIcon,
-  HomeIcon,
   MessageSquareIcon,
   UserIcon,
 } from './icons';
@@ -53,7 +53,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   const hasPositionedIndicator = React.useRef(false);
 
   const items = [
-    { id: 'home' as BottomNavPage, icon: HomeIcon, onPress: onHome },
+    { id: 'home' as BottomNavPage, icon: CatalogIcon, onPress: onHome },
     { id: 'cart' as BottomNavPage, icon: CartIcon, onPress: onCart, hasBadge: true },
     { id: 'profile' as BottomNavPage, icon: UserIcon, onPress: onProfile },
     { id: 'contacts' as BottomNavPage, icon: CompassIcon, onPress: onContacts },

@@ -7,6 +7,26 @@ export interface Address {
 export interface Zone {
   id: string;
   name: string;
+  dadata_name?: string;
+}
+
+export interface PostalOfficeAddress {
+  settlementTypeOrCityType?: string;
+  settlementOrCity?: string;
+  shortAddress?: string;
+  region?: string;
+}
+
+export interface PostalOfficeLookupResponse {
+  success?: boolean;
+  error?: string;
+  zone_id?: number | string | null;
+  zone_name?: string | null;
+  region_name?: string | null;
+  data?: Array<{
+    address?: PostalOfficeAddress;
+    typeCode?: string;
+  }>;
 }
 
 export interface AddressesResponse {

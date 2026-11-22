@@ -204,6 +204,10 @@ export const addressesStyles = StyleSheet.create({
     fontSize: 14,
     color: '#000000',
   },
+  inputInvalid: {
+    borderWidth: 1,
+    borderColor: '#ff5c5c',
+  },
   inputDisabled: {
     backgroundColor: '#f1f5f9',
     color: '#64748b',

@@ -266,6 +266,28 @@ export const HomeIcon: React.FC<IconProps> = ({
   </Svg>
 );
 
+export const CatalogIcon: React.FC<IconProps> = ({
+  size = 18,
+  color = '#94a3b8',
+  strokeWidth = 2.2,
+}) => (
+  <Svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <Rect x="3" y="3" width="8" height="8" rx="1.5" />
+    <Rect x="13" y="3" width="8" height="8" rx="1.5" />
+    <Rect x="3" y="13" width="8" height="8" rx="1.5" />
+    <Rect x="13" y="13" width="8" height="8" rx="1.5" />
+  </Svg>
+);
+
 export const CompassIcon: React.FC<IconProps> = ({
   size = 18,
   color = '#94a3b8',

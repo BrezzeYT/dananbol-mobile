@@ -13,6 +13,7 @@ import { AddressesView } from './AddressesView';
 import { TransactionsView } from './TransactionsView';
 import { fetchMobileOrders } from '../api/orders';
 import type { Order } from '../types/orders';
+import type { Address } from '../types/addresses';
 import { profileStyles as s } from '../styles/ProfileView.styles';
 import { UserIcon } from './icons';
 import Svg, { Path, Circle } from 'react-native-svg';
@@ -78,6 +79,8 @@ interface ProfileViewProps {
   initialOrderId?: string | null;
   initialSubView?: 'main' | 'orders' | 'addresses' | 'transactions';
   initialShowAddAddressForm?: boolean;
+  onAddressCreated?: (address: Address) => void;
+  onAddressFlowCancelled?: () => void;
   onOpenSupport?: (message: string) => void;
 }
 
@@ -161,6 +164,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   initialOrderId = null,
   initialSubView = 'main',
   initialShowAddAddressForm = false,
+  onAddressCreated,
+  onAddressFlowCancelled,
   onOpenSupport,
 }) => {
   const { token, customer, logout, openAuth, isLoggedIn, refreshSession } = useAuthContext();
@@ -283,8 +288,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       <View style={s.container}>
         <AddressesView
           initialShowAddForm={initialShowAddAddressForm}
+          onAddressCreated={onAddressCreated}
           onBack={() => {
             setActiveSubView('main');
+            onAddressFlowCancelled?.();
           }}
         />
       </View>

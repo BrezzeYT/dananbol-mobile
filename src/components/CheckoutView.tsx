@@ -253,14 +253,28 @@ const AddressFormPage: React.FC<{
         );
         return;
       }
-      const a = resp.data[0].address;
+      const a = resp.data[0]?.address ?? {};
       const c = ((a.settlementTypeOrCityType || '') + ' ' + (a.settlementOrCity || '')).trim();
       const addr = a.shortAddress ? String(a.shortAddress).trim() : '';
       if (c && addr) {
         setCity(c); setAddress1(addr); setIsApiControlled(true);
-        const fz = resp.zone_id ? String(resp.zone_id) : '';
-        setZoneId(fz);
-        if (fz && resp.zone_name) setZoneName(resp.zone_name);
+        const responseZoneIdValue = Number(resp.zone_id) || 0;
+        const responseZoneId = responseZoneIdValue > 0 ? String(responseZoneIdValue) : '';
+        const zoneIsUnknown = responseZoneId === '4236' || resp.zone_name?.trim() === 'Не определен';
+        const resolvedZoneId = zoneIsUnknown ? '' : responseZoneId;
+        const regionName = String(resp.region_name || a.region || '').trim();
+        const resolvedZoneName = resp.zone_name && resp.zone_name.trim() !== 'Не определен'
+          ? resp.zone_name.trim()
+          : regionName;
+        setZoneId(resolvedZoneId);
+        setZoneName(resolvedZoneName);
+        if (!resolvedZoneId) {
+          setPostcodeErr(
+            regionName
+              ? `Не удалось сопоставить регион «${regionName}» с регионом доставки. Проверьте индекс.`
+              : 'Почта России не вернула регион для этого индекса. Проверьте индекс.'
+          );
+        }
       } else {
         setPostcodeErr('Почтовое отделение не найдено, введите корректный индекс');
       }
@@ -322,7 +336,7 @@ const AddressFormPage: React.FC<{
             keyboardType="numeric"
             maxLength={6}
             value={postcode}
-            onChangeText={(t: string) => { setPostcode(t.replace(/\D/g, '').slice(0, 6)); setPostcodeErr(null); setIsApiControlled(false); }}
+            onChangeText={(t: string) => { setPostcode(t.replace(/\D/g, '').slice(0, 6)); setPostcodeErr(null); setIsApiControlled(false); setCity(''); setAddress1(''); setZoneId(''); setZoneName(''); }}
             editable={!isCreating}
           />
           <TouchableOpacity
@@ -412,17 +426,29 @@ interface CheckoutViewProps {
   onProductClick?: (product: Product) => void;
   onGoToAddresses?: () => void;
   onOrderCreated?: (orderId: number) => void;
+  initialSelectedAddress?: Address | null;
 }
 
-export const CheckoutView: React.FC<CheckoutViewProps> = ({ onBack, onGoHome, onProductClick, onGoToAddresses, onOrderCreated }) => {
+export const CheckoutView: React.FC<CheckoutViewProps> = ({
+  onBack,
+  onGoHome,
+  onProductClick,
+  onGoToAddresses,
+  onOrderCreated,
+  initialSelectedAddress,
+}) => {
   const { items, clearCart, subTotal: cartSubTotal } = useCartContext();
   const { customer, token, refreshSession } = useAuthContext();
   const validItems = items.filter((i) => i.product && i.quantity > 0);
 
   // — Addresses —
-  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [addresses, setAddresses] = useState<Address[]>(
+    initialSelectedAddress ? [initialSelectedAddress] : []
+  );
   const [loadingAddresses, setLoadingAddresses] = useState(true);
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    initialSelectedAddress?.id ?? null
+  );
   const [isAddressOpen, setIsAddressOpen] = useState(false);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [showAllAddresses, setShowAllAddresses] = useState(false);
@@ -470,15 +496,26 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({ onBack, onGoHome, on
     fetchMobileAddresses(token)
       .then((res) => {
         if (res.ok) {
-          if (res.addresses) {
-            setAddresses(res.addresses);
-            if (res.addresses.length > 0) setSelectedAddressId(res.addresses[0].id);
+          if (res.addresses || initialSelectedAddress) {
+            const fetchedAddresses = res.addresses ?? [];
+            const nextAddresses = initialSelectedAddress
+              ? [
+                  initialSelectedAddress,
+                  ...fetchedAddresses.filter((address) => address.id !== initialSelectedAddress.id),
+                ]
+              : fetchedAddresses;
+            setAddresses(nextAddresses);
+            if (initialSelectedAddress) {
+              setSelectedAddressId(initialSelectedAddress.id);
+            } else if (nextAddresses.length > 0) {
+              setSelectedAddressId(nextAddresses[0].id);
+            }
           }
         }
       })
       .catch(() => { })
       .finally(() => setLoadingAddresses(false));
-  }, [token]);
+  }, [token, initialSelectedAddress]);
 
 
   const cartKey = validItems.map((i) => `${i.product.id}:${i.quantity}`).sort().join(',');

@@ -5,6 +5,7 @@ import type {
   AddressesResponse,
   CreateAddressData,
   CreateAddressResponse,
+  PostalOfficeLookupResponse,
 } from "../types/addresses";
 
 export async function fetchMobileAddresses(
@@ -83,7 +84,7 @@ export async function deleteMobileAddress(
   return handleApiResponse<{ ok: boolean; error?: string }>(res);
 }
 
-export async function lookupPostalOffice(zip: string): Promise<any> {
+export async function lookupPostalOffice(zip: string): Promise<PostalOfficeLookupResponse> {
   const cleanZip = zip.replace(/\D/g, "").slice(0, 6);
   if (cleanZip.length !== 6) {
     throw new Error("Индекс должен состоять из 6 цифр");

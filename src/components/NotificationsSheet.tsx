@@ -269,6 +269,9 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({
                                 )}
                               </View>
                               <View style={styles.itemBody}>
+                                {item.title ? (
+                                  <Text style={styles.itemTitle}>{item.title}</Text>
+                                ) : null}
                                 <Text style={styles.itemText}>
                                   {renderMessageWithOrderLink(item.message)}
                                 </Text>
@@ -470,6 +473,12 @@ const styles = StyleSheet.create({
   itemBody: {
     flex: 1,
     gap: 4,
+  },
+  itemTitle: {
+    fontFamily: 'Montserrat_700Bold',
+    fontSize: 13,
+    color: '#0f172a',
+    lineHeight: 18,
   },
   itemText: {
     fontFamily: 'Montserrat_500Medium',

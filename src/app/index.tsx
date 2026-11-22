@@ -3,6 +3,7 @@ import {
   View,
   Text,
   TextInput,
+  Animated,
   FlatList,
   ActivityIndicator,
   RefreshControl,
@@ -12,6 +13,7 @@ import {
   Platform,
   AppState,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurTargetView } from 'expo-blur';
@@ -28,6 +30,7 @@ import { ProfileView } from '../components/ProfileView';
 import { ContactsView } from '../components/ContactsView';
 import { SupportView } from '../components/SupportView';
 import { TopupModal } from '../components/TopupModal';
+import { SplashScreen } from '../components/SplashScreen';
 import { useAppContext } from '../context/useAppContext';
 import { useAuthContext } from '../context/useAuthContext';
 import { useCartContext } from '../context/useCartContext';
@@ -40,18 +43,18 @@ import {
 } from '../api/notifications';
 import {
   initNotifications,
-  showLocalNotification,
   subscribeToNotificationClick,
   getPushToken,
 } from '../services/notifications';
 import { styles } from '../styles/HomeView.styles';
 import type { Product } from '../types';
+import type { Address } from '../types/addresses';
 
 const NOTIF_LAST_READ_KEY = '@danabol_mobile_notif_last_read';
 
 export default function HomeScreen() {
-  const { categories, isCatalogLoading, catalogError, handleBuyClick } = useAppContext();
-  const { customer, token, isLoggedIn, openAuth, refreshSession } = useAuthContext();
+  const { categories, isCatalogLoading, isAppReady, catalogError, handleBuyClick } = useAppContext();
+  const { customer, token, isLoggedIn, isAuthLoading, openAuth, refreshSession } = useAuthContext();
   const { totalCount, items, addToCart, updateQuantity } = useCartContext();
 
   const [activeTab, setActiveTab] = useState<BottomNavPage>('home');
@@ -65,18 +68,38 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const catalogListRef = useRef<FlatList<Product>>(null);
   const bottomNavBlurTarget = useRef<View | null>(null);
+  const [splashDone, setSplashDone] = useState(false);
+  const [minimumSplashTimePassed, setMinimumSplashTimePassed] = useState(false);
+  const [maximumSplashTimePassed, setMaximumSplashTimePassed] = useState(false);
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [supportInitialMessage, setSupportInitialMessage] = useState('');
   const [showTopupModal, setShowTopupModal] = useState(false);
   const [targetProfileOrderId, setTargetProfileOrderId] = useState<string | null>(null);
   const [profileSubView, setProfileSubView] = useState<'main' | 'orders' | 'addresses' | 'transactions'>('main');
   const [profileShowAddAddress, setProfileShowAddAddress] = useState(false);
+  const [returnToCheckoutAfterAddressSave, setReturnToCheckoutAfterAddressSave] = useState(false);
+  const [checkoutAddressToSelect, setCheckoutAddressToSelect] = useState<Address | null>(null);
 
   const [notifications, setNotifications] = useState<BackendNotification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [lastReadTime, setLastReadTime] = useState<number>(Date.now());
-  const seenNotifIds = useRef<Set<string>>(new Set());
-  const isFirstNotifLoad = useRef(true);
+
+  useEffect(() => {
+    const minimumTimer = setTimeout(() => setMinimumSplashTimePassed(true), 2200);
+    const maximumTimer = setTimeout(() => setMaximumSplashTimePassed(true), 12000);
+    return () => {
+      clearTimeout(minimumTimer);
+      clearTimeout(maximumTimer);
+    };
+  }, []);
+
+  useEffect(() => {
+    const isReady = (!isAuthLoading && isAppReady) || maximumSplashTimePassed;
+    if (!splashDone && minimumSplashTimePassed && isReady) {
+      setSplashDone(true);
+    }
+  }, [isAppReady, isAuthLoading, maximumSplashTimePassed, minimumSplashTimePassed, splashDone]);
 
   const handleCardAddToCart = useCallback((p: Product) => {
     addToCart(p, 1);
@@ -89,6 +112,8 @@ export default function HomeScreen() {
 
   const switchTab = useCallback((nextTab: BottomNavPage) => {
     setIsCheckingOut(false);
+    setReturnToCheckoutAfterAddressSave(false);
+    setCheckoutAddressToSelect(null);
     if (nextTab !== 'profile') {
       setProfileSubView('main');
       setProfileShowAddAddress(false);
@@ -108,10 +133,10 @@ export default function HomeScreen() {
       setIsCheckingOut(false);
       setProfileSubView('orders');
       setActiveTab('profile');
-    });
+    }, () => switchTab('support'));
 
     return unsubscribe;
-  }, []);
+  }, [switchTab]);
 
   useEffect(() => {
     if (!isLoggedIn || !token) return;
@@ -136,41 +161,13 @@ export default function HomeScreen() {
       const res = await fetchMobileNotifications(token);
       if (res.ok && res.notifications) {
         setNotifications(res.notifications);
-
-        if (isFirstNotifLoad.current) {
-          isFirstNotifLoad.current = false;
-          res.notifications.forEach((n) => seenNotifIds.current.add(n.id));
-        } else {
-          for (const n of res.notifications) {
-            if (!seenNotifIds.current.has(n.id)) {
-              seenNotifIds.current.add(n.id);
-              if (n.id.startsWith('tx_') && n.message.includes('-')) {
-                continue;
-              }
-              const orderMatch = n.message.match(/#\s*(\d+)/);
-              const orderId = orderMatch ? orderMatch[1] : undefined;
-              if (orderId && seenNotifIds.current.has(`created_ord_${orderId}`)) {
-                continue;
-              }
-              showLocalNotification(
-                'Danabol',
-                n.message,
-                orderId ? { orderId } : undefined
-              );
-            }
-          }
-        }
       }
-    } catch (err) {
-      console.debug('Failed to fetch mobile notifications:', err);
-    }
+    } catch {}
   }, [token]);
 
   useEffect(() => {
     if (!isLoggedIn || !token) {
       setNotifications([]);
-      seenNotifIds.current.clear();
-      isFirstNotifLoad.current = true;
       return;
     }
 
@@ -302,18 +299,25 @@ export default function HomeScreen() {
     if (isCheckingOut) {
       return (
         <CheckoutView
-          onBack={() => setIsCheckingOut(false)}
-          onGoHome={() => switchTab('home')}
+          initialSelectedAddress={checkoutAddressToSelect}
+          onBack={() => {
+            setCheckoutAddressToSelect(null);
+            setIsCheckingOut(false);
+          }}
+          onGoHome={() => {
+            setCheckoutAddressToSelect(null);
+            switchTab('home');
+          }}
           onProductClick={(product) => setSelectedProduct(product)}
-          onOrderCreated={(orderId) => {
-            if (orderId) {
-              seenNotifIds.current.add(`created_ord_${orderId}`);
-            }
+          onOrderCreated={() => {
+            setCheckoutAddressToSelect(null);
             loadNotifications();
             refreshSession?.();
           }}
           onGoToAddresses={() => {
             setIsCheckingOut(false);
+            setReturnToCheckoutAfterAddressSave(true);
+            setCheckoutAddressToSelect(null);
             setTargetProfileOrderId(null);
             setProfileSubView('addresses');
             setProfileShowAddAddress(true);
@@ -337,8 +341,20 @@ export default function HomeScreen() {
             initialOrderId={targetProfileOrderId}
             initialSubView={profileSubView}
             initialShowAddAddressForm={profileShowAddAddress}
+            onAddressCreated={(address) => {
+              if (!returnToCheckoutAfterAddressSave) return;
+              setCheckoutAddressToSelect(address);
+              setReturnToCheckoutAfterAddressSave(false);
+              setProfileSubView('main');
+              setProfileShowAddAddress(false);
+              setIsCheckingOut(true);
+            }}
+            onAddressFlowCancelled={() => {
+              setReturnToCheckoutAfterAddressSave(false);
+            }}
             onBalanceClick={() => setShowTopupModal(true)}
-            onOpenSupport={() => {
+            onOpenSupport={(message) => {
+              setSupportInitialMessage(message);
               switchTab('support');
             }}
           />
@@ -346,7 +362,12 @@ export default function HomeScreen() {
       case 'contacts':
         return <ContactsView />;
       case 'support':
-        return <SupportView />;
+        return (
+          <SupportView
+            initialMessage={supportInitialMessage}
+            onInitialMessageConsumed={() => setSupportInitialMessage('')}
+          />
+        );
       case 'home':
       default:
         return (
@@ -503,6 +524,15 @@ export default function HomeScreen() {
         );
     }
   };
+
+  if (!splashDone) {
+    return (
+      <View style={styles.splashScreenRoot}>
+        <StatusBar style="light" backgroundColor="#080e15" />
+        <SplashScreen />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>

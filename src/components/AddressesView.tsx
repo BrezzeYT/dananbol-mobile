@@ -26,12 +26,39 @@ import { useAuthContext } from '../context/useAuthContext';
 import { addressesStyles as s } from '../styles/AddressesView.styles';
 import type { Address, Zone } from '../types/addresses';
 
+const isValidRussianName = (value: string) =>
+  /^[а-яА-Я -]+$/u.test(value.trim()) && /[а-яА-Я]/u.test(value);
+
+const normalizeRegionName = (value?: string | null) =>
+  String(value ?? '')
+    .trim()
+    .toLocaleLowerCase('ru-RU')
+    .replace(/ё/g, 'е')
+    .replace(/[.,]/g, ' ')
+    .replace(/\s+/g, ' ');
+
+const getRussianNameError = (value: string, field: 'имя' | 'фамилия') => {
+  const fieldCase = field === 'имя' ? 'имени' : 'фамилии';
+  if (/[a-z]/i.test(value)) {
+    return `Английские буквы в ${fieldCase} недопустимы`;
+  }
+  if (!/^[а-яА-Я -]+$/u.test(value.trim())) {
+    return `В ${fieldCase} есть недопустимые символы`;
+  }
+  return `Укажите ${field} русскими буквами`;
+};
+
 interface AddressesViewProps {
   onBack: () => void;
   initialShowAddForm?: boolean;
+  onAddressCreated?: (address: Address) => void;
 }
 
-export const AddressesView: React.FC<AddressesViewProps> = ({ onBack, initialShowAddForm = false }) => {
+export const AddressesView: React.FC<AddressesViewProps> = ({
+  onBack,
+  initialShowAddForm = false,
+  onAddressCreated,
+}) => {
   const { token } = useAuthContext();
   const insets = useSafeAreaInsets();
 
@@ -60,6 +87,13 @@ export const AddressesView: React.FC<AddressesViewProps> = ({ onBack, initialSho
   const [addressToDelete, setAddressToDelete] = useState<Address | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const firstnameError = firstname.length > 0 && !isValidRussianName(firstname)
+    ? getRussianNameError(firstname, 'имя')
+    : null;
+  const lastnameError = lastname.length > 0 && !isValidRussianName(lastname)
+    ? getRussianNameError(lastname, 'фамилия')
+    : null;
 
   useEffect(() => {
     if (!token) {
@@ -112,25 +146,44 @@ export const AddressesView: React.FC<AddressesViewProps> = ({ onBack, initialSho
       }
 
       const item = resp.data[0];
-      const a = item.address;
+      const a = item?.address ?? {};
       const c = (
         (a.settlementTypeOrCityType || '') +
         ' ' +
         (a.settlementOrCity || '')
       ).trim();
       const addr = a.shortAddress ? String(a.shortAddress).trim() : '';
+      const regionName = String(resp.region_name || a.region || '').trim();
+      const responseZoneIdValue = Number(resp.zone_id) || 0;
+      const responseZoneId = responseZoneIdValue > 0 ? String(responseZoneIdValue) : '';
+      const responseZone = responseZoneId
+        ? zones.find((zone) => String(zone.id) === responseZoneId)
+        : undefined;
+      const matchedByRegion = regionName
+        ? zones.find((zone) => normalizeRegionName(zone.dadata_name) === normalizeRegionName(regionName)) ||
+          zones.find((zone) => normalizeRegionName(zone.name) === normalizeRegionName(regionName))
+        : undefined;
+      const responseZoneIsUnknown = responseZoneId === '4236' || resp.zone_name?.trim() === 'Не определен';
+      const resolvedZone = responseZoneIsUnknown
+        ? matchedByRegion
+        : responseZone || matchedByRegion;
+      const resolvedZoneId = resolvedZone?.id || (responseZoneIsUnknown ? '' : responseZoneId);
+      const resolvedZoneName = resolvedZone?.name ||
+        (resp.zone_name && resp.zone_name.trim() !== 'Не определен' ? resp.zone_name.trim() : regionName);
+
+      setZoneId(resolvedZoneId);
+      setZoneName(resolvedZoneName);
 
       if (c && addr) {
         setCity(c);
         setAddress1(addr);
         setIsApiControlled(true);
-
-        const foundZoneId = resp.zone_id ? String(resp.zone_id) : '';
-        setZoneId(foundZoneId);
-
-        if (foundZoneId && zones.length > 0) {
-          const matched = zones.find((z) => String(z.id) === foundZoneId);
-          if (matched) setZoneName(matched.name);
+        if (!resolvedZoneId) {
+          setPostcodeError(
+            regionName
+              ? `Не удалось сопоставить регион «${regionName}» с регионом доставки. Проверьте индекс.`
+              : 'Почта России не вернула регион для этого индекса. Проверьте индекс.'
+          );
         }
       } else {
         setPostcodeError(
@@ -157,6 +210,16 @@ export const AddressesView: React.FC<AddressesViewProps> = ({ onBack, initialSho
       setCreateError('Укажите фамилию');
       return;
     }
+    const firstnameValidationError = getRussianNameError(firstname, 'имя');
+    if (!isValidRussianName(firstname)) {
+      setCreateError(firstnameValidationError);
+      return;
+    }
+    const lastnameValidationError = getRussianNameError(lastname, 'фамилия');
+    if (!isValidRussianName(lastname)) {
+      setCreateError(lastnameValidationError);
+      return;
+    }
     if (!isApiControlled || !zoneId) {
       setCreateError('Сначала найдите почтовое отделение по индексу');
       return;
@@ -181,6 +244,7 @@ export const AddressesView: React.FC<AddressesViewProps> = ({ onBack, initialSho
         setAddressQuery('');
         resetForm();
         setShowAddForm(false);
+        onAddressCreated?.(res.address);
       } else {
         setCreateError(res.error || 'Не удалось сохранить адрес');
       }
@@ -274,26 +338,38 @@ export const AddressesView: React.FC<AddressesViewProps> = ({ onBack, initialSho
               <View style={s.inputGroup}>
                 <Text style={s.label}>Имя *</Text>
                 <TextInput
-                  style={s.input}
+                  style={[s.input, firstnameError && s.inputInvalid]}
                   placeholder="Иван"
                   placeholderTextColor="#94a3b8"
                   value={firstname}
-                  onChangeText={setFirstname}
+                  onChangeText={(value) => {
+                    setFirstname(value);
+                    setCreateError(null);
+                  }}
                   editable={!isCreating}
                 />
+                {firstnameError && (
+                  <Text style={s.postcodeErrorText}>{firstnameError}</Text>
+                )}
               </View>
             </View>
             <View style={s.formCol}>
               <View style={s.inputGroup}>
                 <Text style={s.label}>Фамилия *</Text>
                 <TextInput
-                  style={s.input}
+                  style={[s.input, lastnameError && s.inputInvalid]}
                   placeholder="Иванов"
                   placeholderTextColor="#94a3b8"
                   value={lastname}
-                  onChangeText={setLastname}
+                  onChangeText={(value) => {
+                    setLastname(value);
+                    setCreateError(null);
+                  }}
                   editable={!isCreating}
                 />
+                {lastnameError && (
+                  <Text style={s.postcodeErrorText}>{lastnameError}</Text>
+                )}
               </View>
             </View>
           </View>
@@ -313,6 +389,10 @@ export const AddressesView: React.FC<AddressesViewProps> = ({ onBack, initialSho
                   setPostcode(text.replace(/\D/g, '').slice(0, 6));
                   setPostcodeError(null);
                   setIsApiControlled(false);
+                  setCity('');
+                  setAddress1('');
+                  setZoneId('');
+                  setZoneName('');
                 }}
                 editable={!isCreating}
               />
@@ -414,12 +494,12 @@ export const AddressesView: React.FC<AddressesViewProps> = ({ onBack, initialSho
             <TouchableOpacity
               style={[
                 s.saveBtn,
-                (isCreating || !isApiControlled || !firstname.trim() || !lastname.trim()) &&
+                (isCreating || !isApiControlled || !isValidRussianName(firstname) || !isValidRussianName(lastname)) &&
                 s.saveBtnDisabled,
               ]}
               onPress={handleSaveAddress}
               disabled={
-                isCreating || !isApiControlled || !firstname.trim() || !lastname.trim()
+                isCreating || !isApiControlled || !isValidRussianName(firstname) || !isValidRussianName(lastname)
               }
               activeOpacity={0.8}
             >

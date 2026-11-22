@@ -65,6 +65,7 @@ export const AuthSheet: React.FC = () => {
 
   useEffect(() => {
     if (isAuthOpen) {
+      setTab('login');
       setVisible(true);
       Animated.parallel([
         Animated.timing(overlayOpacity, {

@@ -4,11 +4,11 @@
     "slug": "danabol-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/danabol-app-icon.png",
     "scheme": "danabolmobile",
     "userInterfaceStyle": "light",
     "ios": {
-      "icon": "./assets/expo.icon",
+      "icon": "./assets/images/danabol-app-icon.png",
       "bundleIdentifier": "com.danabol.mobile",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -18,10 +18,8 @@
       "package": "com.danabol.mobile",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/images/danabol-app-icon.png"
       },
       "predictiveBackGestureEnabled": false
     },
@@ -34,9 +32,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#080e15",
+          "image": "./assets/images/danabol-splash.png",
+          "imageWidth": 94
         }
       ],
       "expo-font",
@@ -45,7 +43,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/android-icon-monochrome.png",
+          "icon": "./assets/images/danabol-notification-icon.png",
           "color": "#8ec0ed"
         }
       ]
